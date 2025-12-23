@@ -1,120 +1,312 @@
 <!DOCTYPE html>
 <html lang="en-us">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | FreeFall2DGit1</title>
-    <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>FreeFall2D | WebGL</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico" />
+    <link rel="stylesheet" href="TemplateData/style.css" />
+    <meta
+      name="viewport"
+      content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      #unity-container {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+      }
+
+      #unity-canvas {
+        background: #000;
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: 100%;
+        aspect-ratio: 16/9;
+      }
+
+      /* ----------- New Loading Screen ----------- */
+      #unity-loading-screen {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 260px;
+        z-index: 20;
+        pointer-events: none;
+      }
+
+      #loading-logo {
+        width: 180px;
+        height: auto;
+        margin-bottom: 20px;
+        animation: fadeIn 0.5s ease forwards;
+        position: relative;
+        z-index: 2;
+      }
+
+      #loading-logo::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 420px;
+        height: 420px;
+        background: radial-gradient(
+          circle,
+          rgba(52, 211, 153, 0.70) 0%,
+          rgba(52, 211, 153, 0.15) 50%,
+          rgba(52, 211, 153, 0) 85%
+        );
+        filter: blur(90px);
+        z-index: -1;
+        pointer-events: none;
+        animation: glowPulse 3s ease-in-out infinite;
+      }
+
+      #unity-progress-bar-empty {
+        width: 100%;
+        height: 14px;
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 10px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      #unity-progress-bar-full {
+        width: 0%;
+        height: 100%;
+        background: #34d399;
+        border-radius: 10px;
+        transition: width 0.2s ease;
+        position: relative;
+        z-index: 2;
+      }
+
+      /* Glow behind loading bar */
+      #unity-progress-bar-empty::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 250px;
+        height: 80px;
+        transform: translate(-50%, -50%);
+        background: radial-gradient(
+          circle,
+          rgba(52, 211, 153, 0.50) 0%,
+          rgba(52, 211, 153, 0.10) 50%,
+          rgba(52, 211, 153, 0) 85%
+        );
+        filter: blur(40px);
+        z-index: 1;
+        pointer-events: none;
+        animation: glowPulse 3s ease-in-out infinite;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      #unity-loading-screen::before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 260px;
+        height: 260px;
+        background: radial-gradient(
+          circle,
+          rgba(52, 211, 153, 0.45) 0%,
+          rgba(52, 211, 153, 0) 70%
+        );
+        filter: blur(35px);
+        z-index: 1;
+        pointer-events: none;
+        animation: glowPulse 3s ease-in-out infinite;
+      }
+
+      @keyframes glowPulse {
+        0%   { transform: translate(-50%, -50%) scale(0.95); opacity: 0.8; }
+        50%  { transform: translate(-50%, -50%) scale(1.05); opacity: 1; }
+        100% { transform: translate(-50%, -50%) scale(0.95); opacity: 0.8; }
+      }
+
+      /* Rotate Device Overlay */
+      #rotate-device {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        font-size: 22px;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 9999;
+        flex-direction: column;
+      }
+
+      #rotate-device img {
+        width: 90px;
+        margin-bottom: 20px;
+        animation: rotate 2s linear infinite;
+      }
+
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+
+    </style>
   </head>
+
   <body>
-    <div id="unity-container" class="unity-desktop">
-      <canvas id="unity-canvas" width=1440 height=810></canvas>
-      <div id="unity-loading-bar">
-        <div id="unity-logo"></div>
+    <div id="unity-container">
+      <canvas id="unity-canvas" width="1920" height="1080" tabindex="-1"></canvas>
+
+      <div id="unity-loading-screen">
+        <img id="loading-logo" src="TemplateData/game_logo.jpg" alt="Game Logo" />
+
         <div id="unity-progress-bar-empty">
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <div id="unity-warning"> </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <div id="unity-fullscreen-button"></div>
-        <div id="unity-build-title">FreeFall2DGit1</div>
-      </div>
+
+      <div id="unity-warning"></div>
     </div>
+
+    <div id="rotate-device">
+      <img src="TemplateData/rotate_icon.png" alt="Rotate" />
+      <p>Please rotate your device<br />to landscape mode</p>
+    </div>
+
     <script>
-      var container = document.querySelector("#unity-container");
-      var canvas = document.querySelector("#unity-canvas");
-      var loadingBar = document.querySelector("#unity-loading-bar");
-      var progressBarFull = document.querySelector("#unity-progress-bar-full");
-      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
-      var warningBanner = document.querySelector("#unity-warning");
+      const canvas = document.querySelector("#unity-canvas");
+      const rotateOverlay = document.querySelector("#rotate-device");
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
-      function unityShowBanner(msg, type) {
-        function updateBannerVisibility() {
-          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
-        }
-        var div = document.createElement('div');
-        div.innerHTML = msg;
-        warningBanner.appendChild(div);
-        if (type == 'error') div.style = 'background: red; padding: 10px;';
-        else {
-          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-          setTimeout(function() {
-            warningBanner.removeChild(div);
-            updateBannerVisibility();
-          }, 5000);
-        }
-        updateBannerVisibility();
-      }
+      // NOTE: Update these paths to match your build output folder name
+      const buildUrl = "Build";
+      const loaderUrl = buildUrl + "/FreeFall2DWebGLBuild.loader.js";
 
-      var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/HashCrashReplicaWebGL.loader.js";
-      var config = {
-        dataUrl: buildUrl + "/HashCrashReplicaWebGL.data",
-        frameworkUrl: buildUrl + "/HashCrashReplicaWebGL.framework.js",
-        codeUrl: buildUrl + "/HashCrashReplicaWebGL.wasm",
+      const config = {
+        dataUrl: buildUrl + "/FreeFall2DWebGLBuild.data",
+        frameworkUrl: buildUrl + "/FreeFall2DWebGLBuild.framework.js",
+        codeUrl: buildUrl + "/FreeFall2DWebGLBuild.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
-        productName: "FreeFall2DGit1",
+        productName: "FreeFall2D",
         productVersion: "0.1.0",
         showBanner: unityShowBanner,
+        devicePixelRatio: Math.min(window.devicePixelRatio, 2),
+        matchWebGLToCanvasSize: true,
       };
 
-      // By default Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
-        var meta = document.createElement('meta');
-        meta.name = 'viewport';
-        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-        document.getElementsByTagName('head')[0].appendChild(meta);
-        container.className = "unity-mobile";
-        canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-        unityShowBanner('WebGL builds are not supported on mobile devices.');
-      } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
-        canvas.style.width = "1440px";
-        canvas.style.height = "810px";
+      function unityShowBanner(msg, type) {
+        const warningBanner = document.querySelector("#unity-warning");
+        warningBanner.style.display = "block";
+        warningBanner.textContent = msg;
+        if (type === "error") warningBanner.style.background = "red";
+        if (type === "warning") warningBanner.style.background = "yellow";
+        setTimeout(() => (warningBanner.style.display = "none"), 4000);
       }
 
-      loadingBar.style.display = "block";
+      // Show new loading UI
+      document.querySelector("#unity-loading-screen").style.display = "flex";
 
-      var script = document.createElement("script");
+      const script = document.createElement("script");
       script.src = loaderUrl;
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
-          progressBarFull.style.width = 100 * progress + "%";
-        }).then((unityInstance) => {
-          web3UnityInstance = unityInstance;
-          loadingBar.style.display = "none";
-          fullscreenButton.onclick = () => {
-            unityInstance.SetFullscreen(1);
-          };
-        }).catch((message) => {
-          alert(message);
-        });
+          document.querySelector("#unity-progress-bar-full").style.width =
+            100 * progress + "%";
+        })
+          .then((unityInstance) => {
+            document.querySelector("#unity-loading-screen").style.display = "none";
+
+            // IMPORTANT: Both variables are needed for wallet integrations
+            // web3UnityInstance is required by ChainSafe SDK for MetaMask
+            // window.unityInstance is used by Abstract wallet bridge
+            window.unityInstance = unityInstance;
+            web3UnityInstance = unityInstance;
+
+            updateAspectRatio();
+            checkOrientation();
+          })
+          .catch((message) => alert(message));
       };
       document.body.appendChild(script);
+
+      function updateAspectRatio() {
+        canvas.style.aspectRatio = "16/9";
+      }
+
+      function checkOrientation() {
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        if (isMobile) {
+          if (window.innerHeight > window.innerWidth) {
+            rotateOverlay.style.display = "flex";
+            canvas.style.display = "none";
+          } else {
+            rotateOverlay.style.display = "none";
+            canvas.style.display = "block";
+          }
+        } else {
+          rotateOverlay.style.display = "none";
+          canvas.style.display = "block";
+        }
+      }
+
+      window.addEventListener("resize", () => {
+        clearTimeout(window._resizeTimeout);
+        window._resizeTimeout = setTimeout(() => {
+          updateAspectRatio();
+          checkOrientation();
+        }, 300);
+      });
+
+      window.addEventListener("orientationchange", () => {
+        setTimeout(() => {
+          updateAspectRatio();
+          checkOrientation();
+        }, 400);
+      });
     </script>
   </body>
 </html>
